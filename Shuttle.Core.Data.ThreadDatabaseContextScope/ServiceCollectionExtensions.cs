@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Shuttle.Core.Contract;
+using System.Linq;
+using Microsoft.Extensions.Hosting;
 
 namespace Shuttle.Core.Data.ThreadDatabaseContextScope
 {
@@ -9,7 +11,10 @@ namespace Shuttle.Core.Data.ThreadDatabaseContextScope
         {
             Guard.AgainstNull(services, nameof(services));
 
-            services.AddHostedService<ThreadDatabaseContextScopeHostedService>();
+            if (!services.Any(s => s.ServiceType == typeof(IHostedService) && s.ImplementationType == typeof(ThreadDatabaseContextScopeHostedService)))
+            {
+                services.AddHostedService<ThreadDatabaseContextScopeHostedService>();
+            }
 
             return services;
         }
