@@ -45,7 +45,7 @@ namespace Shuttle.Core.Data.ThreadDatabaseContextScope.Tests
 
             var serviceProvider = services.BuildServiceProvider();
 
-            var hostedService = serviceProvider.GetServices<IHostedService>().OfType<ThreadDatabaseContextScopeHostedService>().Single();
+            _ = serviceProvider.GetServices<IHostedService>().OfType<ThreadDatabaseContextScopeHostedService>().Single();
 
             var processorThreadPoolFactory = serviceProvider.GetRequiredService<IProcessorThreadPoolFactory>();
 

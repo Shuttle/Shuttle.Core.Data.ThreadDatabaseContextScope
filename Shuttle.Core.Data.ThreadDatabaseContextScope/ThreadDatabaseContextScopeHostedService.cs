@@ -26,10 +26,10 @@ namespace Shuttle.Core.Data.ThreadDatabaseContextScope
         private void ProcessorThreadCreated(object sender, ProcessorThreadCreatedEventArgs e)
         {
             e.ProcessorThread.ProcessorThreadStarting += ProcessorThreadStarting;
-            e.ProcessorThread.ProcessorThreadStopped += ProcessorThreadStopped;
+            e.ProcessorThread.ProcessorThreadStopping += ProcessorThreadStopping;
         }
 
-        private void ProcessorThreadStopped(object sender, ProcessorThreadStoppedEventArgs e)
+        private void ProcessorThreadStopping(object sender, ProcessorThreadEventArgs e)
         {
             var processorThread = (sender as ProcessorThread);
 
@@ -41,7 +41,7 @@ namespace Shuttle.Core.Data.ThreadDatabaseContextScope
             processorThread.GetState("DatabaseContextScope")?.TryDispose();
 
             processorThread.ProcessorThreadStarting -= ProcessorThreadStarting;
-            processorThread.ProcessorThreadStopped -= ProcessorThreadStopped;
+            processorThread.ProcessorThreadStopping -= ProcessorThreadStopping;
         }
 
         private void ProcessorThreadStarting(object sender, ProcessorThreadEventArgs e)
