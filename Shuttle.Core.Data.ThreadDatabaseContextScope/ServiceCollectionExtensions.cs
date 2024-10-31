@@ -1,22 +1,21 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Shuttle.Core.Contract;
-using System.Linq;
+﻿using System.Linq;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Shuttle.Core.Contract;
 
-namespace Shuttle.Core.Data.ThreadDatabaseContextScope
+namespace Shuttle.Core.Data.ThreadDatabaseContextScope;
+
+public static class ServiceCollectionExtensions
 {
-    public static class ServiceCollectionExtensions
+    public static IServiceCollection AddThreadDatabaseContextScope(this IServiceCollection services)
     {
-        public static IServiceCollection AddThreadDatabaseContextScope(this IServiceCollection services)
+        Guard.AgainstNull(services);
+
+        if (!services.Any(s => s.ServiceType == typeof(IHostedService) && s.ImplementationType == typeof(ThreadDatabaseContextScopeHostedService)))
         {
-            Guard.AgainstNull(services, nameof(services));
-
-            if (!services.Any(s => s.ServiceType == typeof(IHostedService) && s.ImplementationType == typeof(ThreadDatabaseContextScopeHostedService)))
-            {
-                services.AddHostedService<ThreadDatabaseContextScopeHostedService>();
-            }
-
-            return services;
+            services.AddHostedService<ThreadDatabaseContextScopeHostedService>();
         }
+
+        return services;
     }
 }
