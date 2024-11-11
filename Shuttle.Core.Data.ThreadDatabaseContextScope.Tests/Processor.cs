@@ -12,7 +12,7 @@ public class Processor : IProcessor
         _databaseContextFactory = Guard.AgainstNull(databaseContextFactory);
     }
 
-    public async Task ExecuteAsync(CancellationToken cancellationToken = default)
+    public async Task ExecuteAsync(IProcessorThreadContext context, CancellationToken cancellationToken = default)
     {
         while (!cancellationToken.IsCancellationRequested)
         {
