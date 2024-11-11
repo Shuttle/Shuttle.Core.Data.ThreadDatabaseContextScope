@@ -13,7 +13,7 @@ public class ThreadDatabaseContextScopeHostedService : IHostedService
 
     public ThreadDatabaseContextScopeHostedService(IProcessorThreadPoolFactory processorThreadPoolFactory)
     {
-        _processorThreadPoolFactory = Guard.AgainstNull(processorThreadPoolFactory, nameof(processorThreadPoolFactory));
+        _processorThreadPoolFactory = Guard.AgainstNull(processorThreadPoolFactory);
 
         _processorThreadPoolFactory.ProcessorThreadPoolCreated += OnProcessorThreadPoolCreated;
     }
@@ -48,9 +48,7 @@ public class ThreadDatabaseContextScopeHostedService : IHostedService
 
     private void ProcessorThreadStopping(object? sender, ProcessorThreadEventArgs e)
     {
-        var processorThread = sender as ProcessorThread;
-
-        if (processorThread == null)
+        if (sender is not ProcessorThread processorThread)
         {
             return;
         }
