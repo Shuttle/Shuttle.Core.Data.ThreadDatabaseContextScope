@@ -43,7 +43,7 @@ public class ThreadDatabaseContextScopeHostedService : IHostedService
 
     private void ProcessorThreadStarting(object? sender, ProcessorThreadEventArgs e)
     {
-        (sender as ProcessorThread)?.SetState("DatabaseContextScope", new DatabaseContextScope());
+        (sender as ProcessorThread)?.State.Replace("DatabaseContextScope", new DatabaseContextScope());
     }
 
     private void ProcessorThreadStopping(object? sender, ProcessorThreadEventArgs e)
@@ -53,7 +53,8 @@ public class ThreadDatabaseContextScopeHostedService : IHostedService
             return;
         }
 
-        processorThread.GetState("DatabaseContextScope")?.TryDispose();
+        processorThread.State.Get("DatabaseContextScope")?.TryDispose();
+        processorThread.State.Remove("DatabaseContextScope");
 
         processorThread.ProcessorThreadStarting -= ProcessorThreadStarting;
         processorThread.ProcessorThreadStopping -= ProcessorThreadStopping;
