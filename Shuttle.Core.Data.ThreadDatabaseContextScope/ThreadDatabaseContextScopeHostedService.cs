@@ -5,60 +5,58 @@ using Shuttle.Core.Contract;
 using Shuttle.Core.Reflection;
 using Shuttle.Core.Threading;
 
-namespace Shuttle.Core.Data.ThreadDatabaseContextScope
+namespace Shuttle.Core.Data.ThreadDatabaseContextScope;
+
+public class ThreadDatabaseContextScopeHostedService : IHostedService
 {
-    public class ThreadDatabaseContextScopeHostedService : IHostedService
+    private readonly IProcessorThreadPoolFactory _processorThreadPoolFactory;
+
+    public ThreadDatabaseContextScopeHostedService(IProcessorThreadPoolFactory processorThreadPoolFactory)
     {
-        private readonly IProcessorThreadPoolFactory _processorThreadPoolFactory;
+        _processorThreadPoolFactory = Guard.AgainstNull(processorThreadPoolFactory);
 
-        public ThreadDatabaseContextScopeHostedService(IProcessorThreadPoolFactory processorThreadPoolFactory)
+        _processorThreadPoolFactory.ProcessorThreadPoolCreated += OnProcessorThreadPoolCreated;
+    }
+
+    public async Task StartAsync(CancellationToken cancellationToken)
+    {
+        await Task.CompletedTask;
+    }
+
+    public async Task StopAsync(CancellationToken cancellationToken)
+    {
+        _processorThreadPoolFactory.ProcessorThreadPoolCreated -= OnProcessorThreadPoolCreated;
+
+        await Task.CompletedTask;
+    }
+
+    private void OnProcessorThreadPoolCreated(object? sender, ProcessorThreadPoolCreatedEventArgs e)
+    {
+        e.ProcessorThreadPool.ProcessorThreadCreated += ProcessorThreadCreated;
+    }
+
+    private void ProcessorThreadCreated(object? sender, ProcessorThreadCreatedEventArgs e)
+    {
+        e.ProcessorThread.ProcessorThreadStarting += ProcessorThreadStarting;
+        e.ProcessorThread.ProcessorThreadStopping += ProcessorThreadStopping;
+    }
+
+    private void ProcessorThreadStarting(object? sender, ProcessorThreadEventArgs e)
+    {
+        (sender as ProcessorThread)?.State.Replace("DatabaseContextScope", new DatabaseContextScope());
+    }
+
+    private void ProcessorThreadStopping(object? sender, ProcessorThreadEventArgs e)
+    {
+        if (sender is not ProcessorThread processorThread)
         {
-            _processorThreadPoolFactory = Guard.AgainstNull(processorThreadPoolFactory, nameof(processorThreadPoolFactory));
-
-            _processorThreadPoolFactory.ProcessorThreadPoolCreated += OnProcessorThreadPoolCreated;
+            return;
         }
 
-        private void OnProcessorThreadPoolCreated(object sender, ProcessorThreadPoolCreatedEventArgs e)
-        {
-            e.ProcessorThreadPool.ProcessorThreadCreated += ProcessorThreadCreated;
-        }
+        processorThread.State.Get("DatabaseContextScope")?.TryDispose();
+        processorThread.State.Remove("DatabaseContextScope");
 
-        private void ProcessorThreadCreated(object sender, ProcessorThreadCreatedEventArgs e)
-        {
-            e.ProcessorThread.ProcessorThreadStarting += ProcessorThreadStarting;
-            e.ProcessorThread.ProcessorThreadStopping += ProcessorThreadStopping;
-        }
-
-        private void ProcessorThreadStopping(object sender, ProcessorThreadEventArgs e)
-        {
-            var processorThread = (sender as ProcessorThread);
-
-            if (processorThread == null)
-            {
-                return;
-            }
-
-            processorThread.GetState("DatabaseContextScope")?.TryDispose();
-
-            processorThread.ProcessorThreadStarting -= ProcessorThreadStarting;
-            processorThread.ProcessorThreadStopping -= ProcessorThreadStopping;
-        }
-
-        private void ProcessorThreadStarting(object sender, ProcessorThreadEventArgs e)
-        {
-            (sender as ProcessorThread)?.SetState("DatabaseContextScope", new DatabaseContextScope());
-        }
-
-        public async Task StartAsync(CancellationToken cancellationToken)
-        {
-            await Task.CompletedTask;
-        }
-
-        public async Task StopAsync(CancellationToken cancellationToken)
-        {
-            _processorThreadPoolFactory.ProcessorThreadPoolCreated -= OnProcessorThreadPoolCreated;
-
-            await Task.CompletedTask;
-        }
+        processorThread.ProcessorThreadStarting -= ProcessorThreadStarting;
+        processorThread.ProcessorThreadStopping -= ProcessorThreadStopping;
     }
 }

@@ -1,5 +1,7 @@
 # Shuttle.Core.Data.ThreadDatabaseContextScope
 
+This package is no longer being maintained as scopes ar eno longer supported.  Rather use the `DatabaseContextFactory` to create a new `IDatabaseContext` instance where you need it, such as in your repository implementation.
+
 ```
 PM> Install-Package Shuttle.Core.Data.ThreadDatabaseContextScope
 ```

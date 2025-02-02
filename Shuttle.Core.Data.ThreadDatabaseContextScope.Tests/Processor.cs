@@ -1,4 +1,5 @@
-﻿using Shuttle.Core.Threading;
+﻿using Shuttle.Core.Contract;
+using Shuttle.Core.Threading;
 
 namespace Shuttle.Core.Data.ThreadDatabaseContextScope.Tests;
 
@@ -8,29 +9,16 @@ public class Processor : IProcessor
 
     public Processor(IDatabaseContextFactory databaseContextFactory)
     {
-        _databaseContextFactory = databaseContextFactory;
+        _databaseContextFactory = Guard.AgainstNull(databaseContextFactory);
     }
 
-    public void Execute(CancellationToken cancellationToken = default)
+    public async Task ExecuteAsync(IProcessorThreadContext context, CancellationToken cancellationToken = default)
     {
         while (!cancellationToken.IsCancellationRequested)
         {
-            using (_databaseContextFactory.Create())
+            await using (_databaseContextFactory.Create())
             {
-                Console.WriteLine($"[Processor.Execute] : managed thread id = {Thread.CurrentThread.ManagedThreadId}");
-            }
-
-            Task.Delay(100, cancellationToken).GetAwaiter().GetResult();
-        }
-    }
-
-    public async Task ExecuteAsync(CancellationToken cancellationToken = default)
-    {
-        while (!cancellationToken.IsCancellationRequested)
-        {
-            using (_databaseContextFactory.Create())
-            {
-                Console.WriteLine($"[Processor.ExecuteAsync] : managed thread id = {Thread.CurrentThread.ManagedThreadId}");
+                Console.WriteLine($"[Processor.ExecuteAsync] : managed thread id = {Environment.CurrentManagedThreadId}");
             }
 
             await Task.Delay(100, cancellationToken);
