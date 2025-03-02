@@ -8,7 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
-    <PackageReference Include="Shuttle.Core.Data" Version="21.0.0" />
+    <PackageReference Include="Shuttle.Core.Data" Version="20.0.0" />
     <PackageReference Include="Shuttle.Core.Threading" Version="20.0.0" />
   </ItemGroup>
 
